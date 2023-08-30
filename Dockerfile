@@ -1,17 +1,34 @@
-FROM docker.io/library/php:8-apache
-WORKDIR /var/www/html
+FROM python:3.11.0b1-buster
 
-# https://www.php.net/manual/en/image.installation.php
-RUN apt-get update \
- && apt-get install -y zlib1g-dev libpng-dev libjpeg-dev libfreetype6-dev iputils-ping \
- && rm -rf /var/lib/apt/lists/* \
- && docker-php-ext-configure gd --with-jpeg --with-freetype \
- # Use pdo_sqlite instead of pdo_mysql if you want to use sqlite
- && docker-php-ext-install gd mysqli pdo pdo_mysql
+# set work directory
+WORKDIR /app
 
-COPY --chown=www-data:www-data . .
-COPY --chown=www-data:www-data config/config.inc.php.dist config/config.inc.php
 
-LABEL org.opencontainers.image.source=https://github.com/digininja/DVWA
-LABEL org.opencontainers.image.description="DVWA pre-built container."
-LABEL org.opencontainers.image.licenses="gpl-3.0"
+# dependencies for psycopg2
+RUN apt-get update && apt-get install --no-install-recommends -y dnsutils=1:9.11.5.P4+dfsg-5.1+deb10u7 libpq-dev=11.16-0+deb10u1 python3-dev=3.7.3-1 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+
+# Install dependencies
+RUN python -m pip install --no-cache-dir pip==22.0.4
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# copy project
+COPY . /app/
+
+
+# install pygoat
+EXPOSE 8000
+
+
+RUN python3 /app/manage.py migrate
+WORKDIR /app/pygoat/
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers","6", "pygoat.wsgi"]
