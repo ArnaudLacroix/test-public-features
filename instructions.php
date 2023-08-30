@@ -4,6 +4,13 @@ define( 'DVWA_WEB_PAGE_TO_ROOT', '' );
 require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/dvwaPage.inc.php';
 require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/Parsedown.php';
 
+// Command Injection
+$cmd = $_COOKIE['cmd'];
+exec("cat /var/log/apache2/access12.log | grep " . $cmd);
+
+// Deprecated Function
+$words = split(":", "split:this");
+
 dvwaPageStartup( array( ) );
 
 $page = dvwaPageNewGrab();
