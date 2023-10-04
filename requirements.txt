@@ -17,7 +17,7 @@ ipykernel==6.25.2
 mccabe==0.6.1
 oauthlib==3.2.2
 parso
-Pillow==9.4.0
+Pillow==10.0.1
 psycopg2==2.9.3
 pycodestyle==2.7.0
 pycparser==2.21
